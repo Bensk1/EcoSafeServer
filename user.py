@@ -14,6 +14,9 @@ def createUser(username, jsonPayload):
     return 'Create User %s : %s' % (username, password)
 
 def deleteUser(username):
+
+    database.queryDbWithCommit("delete from user where username=?;", (username,), True)
+
     return 'Delete User %s' % username
 
 def listUser():
