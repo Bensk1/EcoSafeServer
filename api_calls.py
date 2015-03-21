@@ -1,9 +1,6 @@
 import requests, json, dateutil.parser
 
-MAX_BONUS = 10.0
-MULTIPLIER = 1.25
-
-def getTrafficBonus(speed, posLat, posLong):
+def getTrafficEvents(posLat, posLong):
     url = 'https://api.tomtom.com/lbs/services/flowSegmentData/3/absolute/10/json'
     params = dict(
             key = '2uwcvbh9cjt7cqfgqbw9e546',
@@ -12,9 +9,11 @@ def getTrafficBonus(speed, posLat, posLong):
 
     resp = requests.get(url=url, params=params)
     data = json.loads(resp.text)
+    print data
+    isSlow = float(data['flowSegmentData']['currentSpeed']) < 0.5 * float(data['flowSegmentData']['freeFlowSpeed'])
+    isJammed = float(data['flowSegmentData']['currentSpeed']) < 0.1 * float(data['flowSegmentData']['freeFlowSpeed'])
 
-    value = max(0, min(1, float(speed) * MULTIPLIER / float(data['flowSegmentData']['freeFlowSpeed'])))
-    return value * MAX_BONUS
+    return [isSlow, isJammed]
 
 # getTrafficBonus(10, 40.7481665, -73.9949547)
 

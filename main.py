@@ -8,11 +8,26 @@ import json
 import sqlite3
 import database
 import api_calls
+from threading import Thread
+import time
+import api_calls
 
 import user
 import ride
 
 app = Flask(__name__)
+
+EVENT_ACCELERATION = False
+EVENT_BREAK = False
+EVENT_IDLE = False
+EVENT_DISTANCE = False
+EVENT_TURN = False
+EVENT_SPEEDING = False
+EVENT_JAM = False
+EVENT_SLOW = False
+
+CURRENT_LAT = 40.7481665
+CURRENT_LONG = -73.9949547
 
 FAKE_DATA = True
 
@@ -103,6 +118,18 @@ def stopRide():
     endLocation['latitude'] = loc[0]['values'][0]['latitude']
     return json.dumps(endLocation)
 
+def background_update_tomtom():
+    while True:
+        time.sleep(15)
+        print("Querying TomTom...")
+        res = api_calls.getTrafficEvents(CURRENT_LAT, CURRENT_LONG)
+        EVENT_JAM = res[1]
+        EVENT_SLOW = res[0]
+
+@app.route("/events")
+def events():
+    return json.dumps([EVENT_ACCELERATION, EVENT_BREAK, EVENT_IDLE, EVENT_DISTANCE, EVENT_TURN, EVENT_SPEEDING, EVENT_JAM, EVENT_SLOW])
+
 @app.route("/")
 def hello():
     # print payload['filter']
@@ -143,5 +170,8 @@ def listUser():
         abort(415)
 
 if __name__ == "__main__":
+    background_tomtom = Thread(target = background_update_tomtom)
+    background_tomtom.setDaemon(True)
+    background_tomtom.start()
     app.debug = True
     app.run()
