@@ -11,6 +11,9 @@ import api_calls
 from threading import Thread
 import time
 import api_calls
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
 
 import user
 import ride
@@ -246,4 +249,7 @@ if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
     app.debug = True
-    app.run(host="0.0.0.0")
+    #app.run(host="0.0.0.0")
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(5000)
+    IOLoop.instance().start()
