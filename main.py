@@ -122,9 +122,12 @@ def background_update_tomtom():
     while True:
         time.sleep(15)
         print("Querying TomTom...")
-        res = api_calls.getTrafficEvents(CURRENT_LAT, CURRENT_LONG)
-        EVENT_JAM = res[1]
-        EVENT_SLOW = res[0]
+        try:
+            res = api_calls.getTrafficEvents(CURRENT_LAT, CURRENT_LONG)
+            EVENT_JAM = res[1]
+            EVENT_SLOW = res[0]
+        except Exception as inst:
+            print("Error in TomTom update: " + str(inst))
 
 @app.route("/events")
 def events():
@@ -173,5 +176,5 @@ if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
     background_tomtom.start()
-    app.debug = True
+    #app.debug = True
     app.run()
