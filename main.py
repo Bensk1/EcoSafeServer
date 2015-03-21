@@ -190,22 +190,26 @@ def triggerAcclerate():
     """BEHAVE_ID = 11"""
     EVENT_ACCELERATION = True
     EVENT_PEBBLE_ACCELERATION = True
+    return "1"
 
 @app.route("/trigger/break")
 def triggerBrake():
     """BEHAVE_ID = 12"""
     EVENT_BRAKE = True
     EVENT_PEBBLE_BREAK = True
+    return "1"
 
 @app.route("/trigger/slow/<state>")
 def triggerSlow(state):
     EVENT_SLOW = bool(int(state))
     EVENT_PEBBLE_SLOW = EVENT_SLOW
+    return "1"
 
 @app.route("/trigger/jam/<state>")
 def triggerJam():
     EVENT_JAM = bool(int(state))
     EVENT_PEBBLE_JAM = EVENT_JAM
+    return "1"
 
 @app.route("/trigger/turn")
 def triggerTurn():
@@ -214,6 +218,7 @@ def triggerTurn():
     EVENT_ACCELERATION = True
     EVENT_PEBBLE_TURN = True
     EVENT_PEBBLE_ACCELERATION = True
+    return "1"
 
 @app.route("/user/")
 def listUser():
