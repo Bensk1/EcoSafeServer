@@ -91,10 +91,7 @@ def routeUser(username):
 
 @app.route("/user/")
 def listUser():
-    users = "Users: \n"
-    for user in database.queryDb('select * from user'):
-        users += user[0] + ' : ' + user[1] + "\n"
-    return users
+    return user.listUser()
 
 if __name__ == "__main__":
     app.debug = True

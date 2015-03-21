@@ -16,11 +16,19 @@ def queryDb(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
+def queryDbWithCommit(query, args=(), one=False):
+    db = getDb()
+    cur = db.execute(query, args)
+    db.commit()
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
 def initDb(app):
     if not os.path.exists("data"):
         os.makedirs("data")
     db = getDb()
-    with app.open_resource('schema.sql', mode='r') as f:
+    with app.open_resource('database.schema', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
     return "init successful"
