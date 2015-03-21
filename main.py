@@ -19,6 +19,19 @@ FAKE_DATA = True
 HARD_BRAKING = 10
 HARD_ACCELERATION = 11
 
+NOVERO_URL = 'http://212.23.138.201:8080/mako-ws/public/query'
+NOVERO_SIGID_LOCATION = 4608
+NOVERO_SIGID_FUEL = 8704
+NOVERO_JSON = {
+    'sigid': -1,
+    'type': 'lastValue',
+    'restrict': {
+        'type': '=',
+        'field': 'carid',
+        'value': 214
+    }
+}
+
 payload = {
     'access_token': '08beec989bccb333439ee3588583f19f02dd6b7e',
     'asset': '357322040163096',
@@ -46,6 +59,22 @@ behaviourEvent = {
     u'gps': []
 }
 
+startLocation = {
+    'longitude': 0.0,
+    'latitude': 0.0
+}
+
+endLocation = {
+    'longitude': 0.0,
+    'latitude': 0.0
+}
+
+def getLocation():
+    NOVERO_JSON['sigid'] = NOVERO_SIGID_LOCATION
+    r = requests.post(NOVERO_URL, json.dumps(NOVERO_JSON))
+    return json.loads(r.text)
+
+
 @app.teardown_appcontext
 def closeConnection(exception):
     database.closeConnection(exception)
@@ -61,10 +90,18 @@ def dropDb():
 
 @app.route("/ride/start")
 def startRide():
-    pass
-@app.route("/ride/stop")
+    loc = getLocation()
+    startLocation['longitude'] = loc[0]['values'][0]['longitude']
+    startLocation['latitude'] = loc[0]['values'][0]['latitude']
+    return json.dumps(startLocation)
+
+
+@app.route("/ride/end")
 def stopRide():
-    pass
+    loc = getLocation()
+    endLocation['longitude'] = loc[0]['values'][0]['longitude']
+    endLocation['latitude'] = loc[0]['values'][0]['latitude']
+    return json.dumps(endLocation)
 
 @app.route("/")
 def hello():
