@@ -5,6 +5,9 @@ from flask import Flask
 import requests
 import json
 import random
+
+import user
+
 app = Flask(__name__)
 
 FAKE_DATA = True
@@ -57,6 +60,16 @@ def getCurrentBehaviourEvent():
             return json.dumps(behaviourEvent)
         else:
             return json.dumps({})
+
+
+@app.route("/user/<username>", methods=['GET', 'POST', 'DELETE'])
+def routeUser(username):
+    if request.method == 'GET':
+        return user.getUser(username)
+    elif request.method == 'POST':
+        return user.createUser(username)
+    elif request.method == 'DELETE':
+        return user.deleteUser(username)
 
 
 if __name__ == "__main__":
