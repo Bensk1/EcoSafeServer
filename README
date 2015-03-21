@@ -1,3 +1,13 @@
-cd venv
-source bin/activate
-pip install -r requirements.txt
+First time:
+chmod +x install.sh
+./install.sh
+
+To startup the virtualenv in other terminals just:
+source .env/bin/activate
+
+Start:
+python main.py
+
+If you want to import libraries
+import sys
+sys.path.append(".env/lib/python2.7/site-packages")

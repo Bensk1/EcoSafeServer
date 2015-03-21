@@ -1,3 +1,6 @@
+import sys
+sys.path.append(".env/lib/python2.7/site-packages")
+
 from flask import Flask
 app = Flask(__name__)
 
