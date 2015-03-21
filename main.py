@@ -60,9 +60,10 @@ def dropDb():
 
 @app.route("/ride/start")
 def startRide():
-
+    pass
 @app.route("/ride/stop")
 def stopRide():
+    pass
 
 @app.route("/")
 def hello():
