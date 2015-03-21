@@ -9,6 +9,7 @@ import sqlite3
 import database
 
 import user
+import ride
 
 app = Flask(__name__)
 
@@ -56,6 +57,12 @@ def initDb():
 @app.route("/db/drop")
 def dropDb():
     return database.dropDb()
+
+@app.route("/ride/start")
+def startRide():
+
+@app.route("/ride/stop")
+def stopRide():
 
 @app.route("/")
 def hello():
