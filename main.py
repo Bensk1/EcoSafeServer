@@ -26,6 +26,15 @@ EVENT_SPEEDING = False
 EVENT_JAM = False
 EVENT_SLOW = False
 
+EVENT_PEBBLE_ACCELERATION = False
+EVENT_PEBBLE_BREAK = False
+EVENT_PEBBLE_IDLE = False
+EVENT_PEBBLE_DISTANCE = False
+EVENT_PEBBLE_TURN = False
+EVENT_PEBBLE_SPEEDING = False
+EVENT_PEBBLE_JAM = False
+EVENT_PEBBLE_SLOW = False
+
 CURRENT_LAT = 40.7481665
 CURRENT_LONG = -73.9949547
 
@@ -180,25 +189,31 @@ def routeUser(username):
 def triggerAcclerate():
     """BEHAVE_ID = 11"""
     EVENT_ACCELERATION = True
+    EVENT_PEBBLE_ACCELERATION = True
 
 @app.route("/trigger/break")
 def triggerBrake():
     """BEHAVE_ID = 12"""
     EVENT_BRAKE = True
+    EVENT_PEBBLE_BREAK = True
 
 @app.route("/trigger/slow/<state>")
 def triggerSlow(state):
     EVENT_SLOW = bool(int(state))
+    EVENT_PEBBLE_SLOW = EVENT_SLOW
 
 @app.route("/trigger/jam/<state>")
 def triggerJam():
     EVENT_JAM = bool(int(state))
+    EVENT_PEBBLE_JAM = EVENT_JAM
 
 @app.route("/trigger/turn")
 def triggerTurn():
     """BEHAVE_ID = 12 / 13 (schnell um die Kurve fahren)"""
     EVENT_TURN = True
     EVENT_ACCELERATION = True
+    EVENT_PEBBLE_TURN = True
+    EVENT_PEBBLE_ACCELERATION = True
 
 @app.route("/user/")
 def listUser():
@@ -209,8 +224,14 @@ def listUser():
 
 @app.route("/shouldVibrate")
 def shouldVibrate():
-    hasNewEvent = True if random.randint(1, 5) == 5 else False
-    return json.dumps(hasNewEvent)
+    #hasNewEvent = True if random.randint(1, 5) == 5 else False
+    value = json.dumps([EVENT_PEBBLE_ACCELERATION, EVENT_PEBBLE_BREAK, EVENT_PEBBLE_IDLE, EVENT_PEBBLE_DISTANCE, EVENT_PEBBLE_TURN, EVENT_PEBBLE_SPEEDING, EVENT_PEBBLE_JAM, EVENT_PEBBLE_SLOW])
+
+    EVENT_PEBBLE_BREAK = False
+    EVENT_PEBBLE_ACCELERATE = False
+    EVENT_PEBBLE_TURN = False
+
+    return value
 
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
