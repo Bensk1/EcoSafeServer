@@ -1,3 +1,6 @@
+import sys
+sys.path.append(".env/lib/python2.7/site-packages")
+
 import requests, json, dateutil.parser
 
 def getTrafficEvents(posLat, posLong):
