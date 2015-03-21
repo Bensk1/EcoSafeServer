@@ -1,9 +1,16 @@
+import database
 
 def getUser(username):
-    return 'Get User %s' % username
+    user = database.queryDb("select * from user where username=?;", (username,), True)
 
-def createUser(username):
-    return 'Create User %s' % username
+    return user[0] + ' : ' + user[1]
+
+def createUser(username, jsonPayload):
+    password = jsonPayload['password']
+
+    database.queryDb("insert into user values (?, ?);", (username, password), True)
+
+    return 'Create User %s : %s' % (username, password)
 
 def deleteUser(username):
     return 'Delete User %s' % username

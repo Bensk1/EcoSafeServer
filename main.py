@@ -1,10 +1,12 @@
 import sys
 sys.path.append(".env/lib/python2.7/site-packages")
 
-from flask import Flask
+from flask import Flask, request, json, abort, g
 import requests
-import json
 import random
+import json
+import sqlite3
+import database
 
 import user
 
@@ -42,6 +44,19 @@ behaviourEvent = {
     u'gps': []
 }
 
+@app.teardown_appcontext
+def closeConnection(exception):
+    database.closeConnection(exception)
+
+@app.route("/db/init")
+def initDb():
+    return database.initDb(app)
+    
+
+@app.route("/db/drop")
+def dropDb():
+    return database.dropDb()
+
 @app.route("/")
 def hello():
     # print payload['filter']
@@ -64,13 +79,22 @@ def getCurrentBehaviourEvent():
 
 @app.route("/user/<username>", methods=['GET', 'POST', 'DELETE'])
 def routeUser(username):
-    if request.method == 'GET':
-        return user.getUser(username)
-    elif request.method == 'POST':
-        return user.createUser(username)
-    elif request.method == 'DELETE':
-        return user.deleteUser(username)
+    if request.headers['Content-Type'] == 'application/json':
+        if request.method == 'GET':
+            return user.getUser(username)
+        elif request.method == 'POST':
+            return user.createUser(username, request.json)
+        elif request.method == 'DELETE':
+            return user.deleteUser(username)
+    else:
+        abort(415)
 
+@app.route("/user/")
+def listUser():
+    users = "Users: \n"
+    for user in database.queryDb('select * from user'):
+        users += user[0] + ' : ' + user[1] + "\n"
+    return users
 
 if __name__ == "__main__":
     app.debug = True
