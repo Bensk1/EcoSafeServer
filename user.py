@@ -1,9 +1,10 @@
 import database
+import json
 
 def getUser(username):
     user = database.queryDb("select * from user where username=?;", (username,), True)
 
-    return user[0] + ' : ' + user[1]
+    return json.dumps({"username": user[0], "password":  user[1]})
 
 def createUser(username, jsonPayload):
     password = jsonPayload['password']
@@ -16,7 +17,7 @@ def deleteUser(username):
     return 'Delete User %s' % username
 
 def listUser():
-    users = "Users: \n"
+    users = []
     for user in database.queryDb('select * from user'):
-        users += user[0] + ' : ' + user[1] + "\n"
-    return users
+        users.append({"username": user[0], "password":  user[1]})
+    return json.dumps(users)

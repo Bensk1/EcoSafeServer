@@ -99,7 +99,10 @@ def routeUser(username):
 
 @app.route("/user/")
 def listUser():
-    return user.listUser()
+    if request.headers['Content-Type'] == 'application/json':
+        return user.listUser()
+    else:
+        abort(415)
 
 if __name__ == "__main__":
     app.debug = True
