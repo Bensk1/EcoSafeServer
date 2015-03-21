@@ -26,7 +26,7 @@ app.EVENT_SPEEDING = False
 app.EVENT_JAM = False
 app.EVENT_SLOW = False
 
-app.EVENT_PEBBLE_ACCELERATION = True
+app.EVENT_PEBBLE_ACCELERATION = False
 app.EVENT_PEBBLE_BREAK = False
 app.EVENT_PEBBLE_IDLE = False
 app.EVENT_PEBBLE_DISTANCE = False
@@ -149,7 +149,7 @@ def events():
     value = json.dumps([app.EVENT_ACCELERATION, app.EVENT_BREAK, app.EVENT_IDLE, app.EVENT_DISTANCE, app.EVENT_TURN, app.EVENT_SPEEDING, app.EVENT_JAM, app.EVENT_SLOW])
 
     app.EVENT_BREAK = False
-    app.EVENT_ACCELERATE = False
+    app.EVENT_ACCELERATION = False
     app.EVENT_TURN = False
 
     return value
