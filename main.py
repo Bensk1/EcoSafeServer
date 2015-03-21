@@ -172,9 +172,14 @@ def listUser():
     else:
         abort(415)
 
+@app.route("/shouldVibrate")
+def shouldVibrate():
+    hasNewEvent = True if random.randint(1, 5) == 5 else False
+    return json.dumps(hasNewEvent)
+
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
     background_tomtom.start()
     #app.debug = True
-    app.run()
+    app.run(host="0.0.0.0")
