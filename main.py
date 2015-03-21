@@ -47,6 +47,8 @@ NOVERO_JSON = {
     }
 }
 
+background_tomtom = None
+
 payload = {
     'access_token': '08beec989bccb333439ee3588583f19f02dd6b7e',
     'asset': '357322040163096',
@@ -105,6 +107,7 @@ def dropDb():
 
 @app.route("/ride/start")
 def startRide():
+    background_tomtom.start()
     loc = getLocation()
     startLocation['longitude'] = loc[0]['values'][0]['longitude']
     startLocation['latitude'] = loc[0]['values'][0]['latitude']
@@ -113,6 +116,7 @@ def startRide():
 
 @app.route("/ride/end")
 def stopRide():
+    background_tomtom.stop();
     loc = getLocation()
     endLocation['longitude'] = loc[0]['values'][0]['longitude']
     endLocation['latitude'] = loc[0]['values'][0]['latitude']
@@ -123,15 +127,22 @@ def background_update_tomtom():
         time.sleep(15)
         print("Querying TomTom...")
         try:
-            res = api_calls.getTrafficEvents(CURRENT_LAT, CURRENT_LONG)
-            EVENT_JAM = res[1]
-            EVENT_SLOW = res[0]
+            if not FAKE_DATA:
+                res = api_calls.getTrafficEvents(CURRENT_LAT, CURRENT_LONG)
+                EVENT_JAM = res[1]
+                EVENT_SLOW = res[0]
         except Exception as inst:
             print("Error in TomTom update: " + str(inst))
 
 @app.route("/events")
 def events():
-    return json.dumps([EVENT_ACCELERATION, EVENT_BREAK, EVENT_IDLE, EVENT_DISTANCE, EVENT_TURN, EVENT_SPEEDING, EVENT_JAM, EVENT_SLOW])
+    value = json.dumps([EVENT_ACCELERATION, EVENT_BREAK, EVENT_IDLE, EVENT_DISTANCE, EVENT_TURN, EVENT_SPEEDING, EVENT_JAM, EVENT_SLOW])
+
+    EVENT_BREAK = False
+    EVENT_ACCELERATE = False
+    EVENT_TURN = False
+
+    return value
 
 @app.route("/")
 def hello():
@@ -165,6 +176,30 @@ def routeUser(username):
     else:
         abort(415)
 
+@app.route("/trigger/accelerate")
+def triggerAcclerate():
+    """BEHAVE_ID = 11"""
+    EVENT_ACCELERATION = True
+
+@app.route("/trigger/break")
+def triggerBrake():
+    """BEHAVE_ID = 12"""
+    EVENT_BRAKE = True
+
+@app.route("/trigger/slow/<state>")
+def triggerSlow(state):
+    EVENT_SLOW = bool(int(state))
+
+@app.route("/trigger/jam/<state>")
+def triggerJam():
+    EVENT_JAM = bool(int(state))
+
+@app.route("/trigger/turn")
+def triggerTurn():
+    """BEHAVE_ID = 12 / 13 (schnell um die Kurve fahren)"""
+    EVENT_TURN = True
+    EVENT_ACCELERATION = True
+
 @app.route("/user/")
 def listUser():
     if request.headers['Content-Type'] == 'application/json':
@@ -180,6 +215,5 @@ def shouldVibrate():
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
-    background_tomtom.start()
     #app.debug = True
     app.run(host="0.0.0.0")
