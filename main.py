@@ -17,23 +17,23 @@ import ride
 
 app = Flask(__name__)
 
-EVENT_ACCELERATION = False
-EVENT_BREAK = False
-EVENT_IDLE = False
-EVENT_DISTANCE = False
-EVENT_TURN = False
-EVENT_SPEEDING = False
-EVENT_JAM = False
-EVENT_SLOW = False
+app.EVENT_ACCELERATION = False
+app.EVENT_BREAK = False
+app.EVENT_IDLE = False
+app.EVENT_DISTANCE = False
+app.EVENT_TURN = False
+app.EVENT_SPEEDING = False
+app.EVENT_JAM = False
+app.EVENT_SLOW = False
 
-EVENT_PEBBLE_ACCELERATION = False
-EVENT_PEBBLE_BREAK = False
-EVENT_PEBBLE_IDLE = False
-EVENT_PEBBLE_DISTANCE = False
-EVENT_PEBBLE_TURN = False
-EVENT_PEBBLE_SPEEDING = False
-EVENT_PEBBLE_JAM = False
-EVENT_PEBBLE_SLOW = False
+app.EVENT_PEBBLE_ACCELERATION = True
+app.EVENT_PEBBLE_BREAK = False
+app.EVENT_PEBBLE_IDLE = False
+app.EVENT_PEBBLE_DISTANCE = False
+app.EVENT_PEBBLE_TURN = False
+app.EVENT_PEBBLE_SPEEDING = False
+app.EVENT_PEBBLE_JAM = False
+app.EVENT_PEBBLE_SLOW = False
 
 CURRENT_LAT = 40.7481665
 CURRENT_LONG = -73.9949547
@@ -95,6 +95,7 @@ endLocation = {
     'latitude': 0.0
 }
 
+
 def getLocation():
     NOVERO_JSON['sigid'] = NOVERO_SIGID_LOCATION
     r = requests.post(NOVERO_URL, json.dumps(NOVERO_JSON))
@@ -138,18 +139,18 @@ def background_update_tomtom():
         try:
             if not FAKE_DATA:
                 res = api_calls.getTrafficEvents(CURRENT_LAT, CURRENT_LONG)
-                EVENT_JAM = res[1]
-                EVENT_SLOW = res[0]
+                app.EVENT_JAM = res[1]
+                app.EVENT_SLOW = res[0]
         except Exception as inst:
             print("Error in TomTom update: " + str(inst))
 
 @app.route("/events")
 def events():
-    value = json.dumps([EVENT_ACCELERATION, EVENT_BREAK, EVENT_IDLE, EVENT_DISTANCE, EVENT_TURN, EVENT_SPEEDING, EVENT_JAM, EVENT_SLOW])
+    value = json.dumps([app.EVENT_ACCELERATION, app.EVENT_BREAK, app.EVENT_IDLE, app.EVENT_DISTANCE, app.EVENT_TURN, app.EVENT_SPEEDING, app.EVENT_JAM, app.EVENT_SLOW])
 
-    EVENT_BREAK = False
-    EVENT_ACCELERATE = False
-    EVENT_TURN = False
+    app.EVENT_BREAK = False
+    app.EVENT_ACCELERATE = False
+    app.EVENT_TURN = False
 
     return value
 
@@ -188,36 +189,36 @@ def routeUser(username):
 @app.route("/trigger/accelerate")
 def triggerAcclerate():
     """BEHAVE_ID = 11"""
-    EVENT_ACCELERATION = True
-    EVENT_PEBBLE_ACCELERATION = True
+    app.EVENT_ACCELERATION = True
+    app.EVENT_PEBBLE_ACCELERATION = True
     return "1"
 
 @app.route("/trigger/break")
 def triggerBrake():
     """BEHAVE_ID = 12"""
-    EVENT_BRAKE = True
-    EVENT_PEBBLE_BREAK = True
+    app.EVENT_BRAKE = True
+    app.EVENT_PEBBLE_BREAK = True
     return "1"
 
 @app.route("/trigger/slow/<state>")
 def triggerSlow(state):
-    EVENT_SLOW = bool(int(state))
-    EVENT_PEBBLE_SLOW = EVENT_SLOW
+    app.EVENT_SLOW = bool(int(state))
+    app.EVENT_PEBBLE_SLOW = app.EVENT_SLOW
     return "1"
 
 @app.route("/trigger/jam/<state>")
 def triggerJam():
-    EVENT_JAM = bool(int(state))
-    EVENT_PEBBLE_JAM = EVENT_JAM
+    app.EVENT_JAM = bool(int(state))
+    app.EVENT_PEBBLE_JAM = app.EVENT_JAM
     return "1"
 
 @app.route("/trigger/turn")
 def triggerTurn():
     """BEHAVE_ID = 12 / 13 (schnell um die Kurve fahren)"""
-    EVENT_TURN = True
-    EVENT_ACCELERATION = True
-    EVENT_PEBBLE_TURN = True
-    EVENT_PEBBLE_ACCELERATION = True
+    app.EVENT_TURN = True
+    app.EVENT_ACCELERATION = True
+    app.EVENT_PEBBLE_TURN = True
+    app.EVENT_PEBBLE_ACCELERATION = True
     return "1"
 
 @app.route("/user/")
@@ -227,19 +228,22 @@ def listUser():
     else:
         abort(415)
 
+
+def resetPebble():
+    app.EVENT_PEBBLE_BREAK = False
+    app.EVENT_PEBBLE_ACCELERATION = False
+    app.EVENT_PEBBLE_TURN = False
+
 @app.route("/shouldVibrate")
 def shouldVibrate():
     #hasNewEvent = True if random.randint(1, 5) == 5 else False
-    value = json.dumps([EVENT_PEBBLE_ACCELERATION, EVENT_PEBBLE_BREAK, EVENT_PEBBLE_IDLE, EVENT_PEBBLE_DISTANCE, EVENT_PEBBLE_TURN, EVENT_PEBBLE_SPEEDING, EVENT_PEBBLE_JAM, EVENT_PEBBLE_SLOW])
+    value = json.dumps([app.EVENT_PEBBLE_ACCELERATION, app.EVENT_PEBBLE_BREAK, app.EVENT_PEBBLE_IDLE, app.EVENT_PEBBLE_DISTANCE, app.EVENT_PEBBLE_TURN, app.EVENT_PEBBLE_SPEEDING, app.EVENT_PEBBLE_JAM, app.EVENT_PEBBLE_SLOW])
 
-    EVENT_PEBBLE_BREAK = False
-    EVENT_PEBBLE_ACCELERATE = False
-    EVENT_PEBBLE_TURN = False
-
+    resetPebble()
     return value
 
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
-    #app.debug = True
+    app.debug = True
     app.run(host="0.0.0.0")
