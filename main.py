@@ -7,6 +7,7 @@ import random
 import json
 import sqlite3
 import database
+import api_calls
 
 import user
 import ride
@@ -52,7 +53,7 @@ def closeConnection(exception):
 @app.route("/db/init")
 def initDb():
     return database.initDb(app)
-    
+
 
 @app.route("/db/drop")
 def dropDb():
