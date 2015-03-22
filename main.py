@@ -40,6 +40,19 @@ app.EVENT_PEBBLE_SPEEDING = False
 app.EVENT_PEBBLE_JAM = False
 app.EVENT_PEBBLE_SLOW = False
 
+app.COUNTER_ACCELERATION = 0;
+app.COUNTER_BREAK = 0;
+app.TIME_IDLE = 0;
+app.COUNTER_DISTANCE = 0;
+app.COUNTER_TURN = 0;
+app.COUNTER_SPEEDING = 0;
+app.TIME_JAM = 0;
+app.TIME_SLOW = 0;
+
+app.START_TIME_IDLE = None;
+app.START_TIME_JAM = None;
+app.START_TIME_SLOW = None;
+
 CURRENT_LAT = 40.7481665
 CURRENT_LONG = -73.9949547
 
@@ -128,6 +141,10 @@ def initDb():
 def dropDb():
     return database.dropDb()
 
+@app.route("/stats")
+def stats():
+    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+
 @app.route("/ride/start")
 def startRide():
     # background_tomtom.start()
@@ -137,7 +154,7 @@ def startRide():
         app.start['location']['longitude'] = loc[0]['values'][0]['longitude']
     else:
         app.start['location']['latitude'] = 52.505236
-        app.start['location']['longitude'] = 13.394680       
+        app.start['location']['longitude'] = 13.394680
 
     app.start['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
 
@@ -159,7 +176,8 @@ def stopRide():
 
     print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], app.start['time'])
 
-    return json.dumps(app.end['location'])
+    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    #return json.dumps(app.end['location'])
 
 def background_update_tomtom():
     while True:
@@ -203,8 +221,6 @@ def events():
     app.EVENT_DISTANCE = False
     app.EVENT_TURN = False
     app.EVENT_SPEEDING = False
-    app.EVENT_JAM = False
-    app.EVENT_SLOW = False
 
     return value
 
@@ -245,6 +261,7 @@ def triggerAcclerate():
     """BEHAVE_ID = 11"""
     app.EVENT_ACCELERATION = True
     app.EVENT_PEBBLE_ACCELERATION = True
+    app.COUNTER_ACCELERATION += 1
     return "1"
 
 @app.route("/trigger/break")
@@ -252,27 +269,61 @@ def triggerBrake():
     """BEHAVE_ID = 12"""
     app.EVENT_BRAKE = True
     app.EVENT_PEBBLE_BREAK = True
+    app.COUNTER_BREAK += 1
+    return "1"
+
+@app.route("/trigger/speeding")
+def triggerSpeeding():
+    app.EVENT_SPEEDING = True
+    app.EVENT_PEBBLE_SPEEDING = True
+    app.COUNTER_SPEEDING += 1
     return "1"
 
 @app.route("/trigger/slow/<state>")
 def triggerSlow(state):
     app.EVENT_SLOW = bool(int(state))
     app.EVENT_PEBBLE_SLOW = app.EVENT_SLOW
+
+    if app.EVENT_SLOW:
+        app.START_TIME_SLOW = datetime.datetime.now()
+    else:
+        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds()
+
     return "1"
 
 @app.route("/trigger/jam/<state>")
-def triggerJam():
+def triggerJam(state):
     app.EVENT_JAM = bool(int(state))
     app.EVENT_PEBBLE_JAM = app.EVENT_JAM
+
+    if app.EVENT_JAM:
+        app.START_TIME_JAM = datetime.datetime.now()
+    else:
+        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds()
+
+    return "1"
+
+@app.route("/trigger/idle/<state>")
+def triggerIdle(state):
+    app.EVENT_IDLE = bool(int(state))
+    app.EVENT_PEBBLE_IDLE = app.EVENT_IDLE
+
+    if app.EVENT_IDLE:
+        app.START_TIME_IDLE = datetime.datetime.now()
+    else:
+        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds()
+
     return "1"
 
 @app.route("/trigger/turn")
 def triggerTurn():
     """BEHAVE_ID = 12 / 13 (schnell um die Kurve fahren)"""
     app.EVENT_TURN = True
-    app.EVENT_ACCELERATION = True
+    #app.EVENT_ACCELERATION = True
     app.EVENT_PEBBLE_TURN = True
-    app.EVENT_PEBBLE_ACCELERATION = True
+    #app.EVENT_PEBBLE_ACCELERATION = True
+    app.COUNTER_TURN += 1
+    #app.COUNTER_ACCELERATION += 1
     return "1"
 
 @app.route("/user/")
@@ -290,8 +341,6 @@ def resetPebble():
     app.EVENT_PEBBLE_DISTANCE = False
     app.EVENT_PEBBLE_TURN = False
     app.EVENT_PEBBLE_SPEEDING = False
-    app.EVENT_PEBBLE_JAM = False
-    app.EVENT_PEBBLE_SLOW = False
 
 @app.route("/shouldVibrate")
 def shouldVibrate():
