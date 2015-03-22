@@ -24,7 +24,7 @@ import ride
 app = Flask(__name__)
 
 app.EVENT_ACCELERATION = False
-app.EVENT_BREAK = False
+app.EVENT_BRAKE = False
 app.EVENT_IDLE = False
 app.EVENT_DISTANCE = False
 app.EVENT_TURN = False
@@ -35,7 +35,7 @@ app.FUEL_USAGE = 0
 app.FUEL_EFFICIENCY = 1
 
 app.EVENT_PEBBLE_ACCELERATION = False
-app.EVENT_PEBBLE_BREAK = False
+app.EVENT_PEBBLE_BRAKE = False
 app.EVENT_PEBBLE_IDLE = False
 app.EVENT_PEBBLE_DISTANCE = False
 app.EVENT_PEBBLE_TURN = False
@@ -44,7 +44,7 @@ app.EVENT_PEBBLE_JAM = False
 app.EVENT_PEBBLE_SLOW = False
 
 app.COUNTER_ACCELERATION = 0;
-app.COUNTER_BREAK = 0;
+app.COUNTER_BRAKE = 0;
 app.TIME_IDLE = 0;
 app.COUNTER_DISTANCE = 0;
 app.COUNTER_TURN = 0;
@@ -164,7 +164,7 @@ def getFuelStatus():
 
 @app.route("/stats")
 def stats():
-    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BRAKE, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
 
 @app.route("/ride/start")
 def startRide():
@@ -198,7 +198,7 @@ def stopRide():
     print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
 
     return json.dumps(calculateScore())
-    # return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    # return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BRAKE, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
     #return json.dumps(app.end['location'])
 
 def background_update_tomtom():
@@ -235,10 +235,10 @@ def background_update_proximity():
 
 @app.route("/events")
 def events():
-    value = json.dumps([app.EVENT_ACCELERATION, app.EVENT_BREAK, app.EVENT_IDLE, app.EVENT_DISTANCE, app.EVENT_TURN, app.EVENT_SPEEDING, app.EVENT_JAM, app.EVENT_SLOW])
+    value = json.dumps([app.EVENT_ACCELERATION, app.EVENT_BRAKE, app.EVENT_IDLE, app.EVENT_DISTANCE, app.EVENT_TURN, app.EVENT_SPEEDING, app.EVENT_JAM, app.EVENT_SLOW])
 
     app.EVENT_ACCELERATION = False
-    app.EVENT_BREAK = False
+    app.EVENT_BRAKE = False
     app.EVENT_IDLE = False
     app.EVENT_DISTANCE = False
     app.EVENT_TURN = False
@@ -290,8 +290,8 @@ def triggerAcclerate():
 def triggerBrake():
     """BEHAVE_ID = 12"""
     app.EVENT_BRAKE = True
-    app.EVENT_PEBBLE_BREAK = True
-    app.COUNTER_BREAK += 1
+    app.EVENT_PEBBLE_BRAKE = True
+    app.COUNTER_BRAKE += 1
     return "1"
 
 @app.route("/trigger/speeding")
@@ -358,7 +358,7 @@ def listUser():
 
 def resetPebble():
     app.EVENT_PEBBLE_ACCELERATION = False
-    app.EVENT_PEBBLE_BREAK = False
+    app.EVENT_PEBBLE_BRAKE = False
     app.EVENT_PEBBLE_IDLE = False
     app.EVENT_PEBBLE_DISTANCE = False
     app.EVENT_PEBBLE_TURN = False
@@ -367,13 +367,13 @@ def resetPebble():
 @app.route("/shouldVibrate")
 def shouldVibrate():
     #hasNewEvent = True if random.randint(1, 5) == 5 else False
-    value = json.dumps([app.EVENT_PEBBLE_ACCELERATION, app.EVENT_PEBBLE_BREAK, app.EVENT_PEBBLE_IDLE, app.EVENT_PEBBLE_DISTANCE, app.EVENT_PEBBLE_TURN, app.EVENT_PEBBLE_SPEEDING, app.EVENT_PEBBLE_JAM, app.EVENT_PEBBLE_SLOW])
+    value = json.dumps([app.EVENT_PEBBLE_ACCELERATION, app.EVENT_PEBBLE_BRAKE, app.EVENT_PEBBLE_IDLE, app.EVENT_PEBBLE_DISTANCE, app.EVENT_PEBBLE_TURN, app.EVENT_PEBBLE_SPEEDING, app.EVENT_PEBBLE_JAM, app.EVENT_PEBBLE_SLOW])
 
     resetPebble()
     return value
 
 def calculateScore():
-    mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BREAK + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
+    mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BRAKE + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
     duration = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
     score = duration = duration / 60
     grade = ""
