@@ -80,7 +80,7 @@ NOVERO_JSON = {
     }
 }
 
-app.pastRideScores = [0.44, 0.61, 0.62]
+app.pastRideScores = [0.44, 0.47, 0.62]
 app.pastRideDurations = [20, 18, 38]
 
 background_tomtom = None
@@ -462,6 +462,8 @@ def calculateOverallScore():
         overAllGrade = "Blind granny"
     else:
         overAllGrade = "Rowdy"
+
+    overAllGrade = "Blind granny"
 
     return overAllGrade
 
