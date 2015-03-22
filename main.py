@@ -296,11 +296,11 @@ def triggerIdle(state):
 def triggerTurn():
     """BEHAVE_ID = 12 / 13 (schnell um die Kurve fahren)"""
     app.EVENT_TURN = True
-    app.EVENT_ACCELERATION = True
+    #app.EVENT_ACCELERATION = True
     app.EVENT_PEBBLE_TURN = True
-    app.EVENT_PEBBLE_ACCELERATION = True
+    #app.EVENT_PEBBLE_ACCELERATION = True
     app.COUNTER_TURN += 1
-    app.COUNTER_ACCELERATION += 1
+    #app.COUNTER_ACCELERATION += 1
     return "1"
 
 @app.route("/user/")
