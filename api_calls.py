@@ -42,7 +42,7 @@ def getAllryderCompare(posLatBegin, posLongBegin, posLatEnd, posLongEnd, timeBeg
         duration = (dateutil.parser.parse(time_end) - dateutil.parser.parse(time_start)).total_seconds()
         duration = ("%.2f" % (duration / 60.0))
 
-        alternatives += [[route['type'], route['provider'], duration, route['price']['amount']]]
+        alternatives += [[route['type'], route['provider'], duration, str(route['price']['amount'] / 100.0) + " Eur"]]
 
     ptLengths = []
     for alternative in alternatives:
