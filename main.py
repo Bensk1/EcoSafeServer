@@ -79,13 +79,13 @@ NOVERO_JSON = {
     }
 }
 
-app.pastRideScores = [0.54, 0.61, 0.71]
+app.pastRideScores = [0.44, 0.61, 0.62]
 app.pastRideDurations = [20, 18, 38]
 
 background_tomtom = None
 background_thread_fuel = None
 
-payload = {
+app.autoScoutPayload = {
     'access_token': '08beec989bccb333439ee3588583f19f02dd6b7e',
     'asset': '357322040163096',
     'filter': 'BEHAVE_ID'
@@ -195,7 +195,7 @@ def startRide():
     # background_tomtom.start()
     if not FAKE_DATA:
         loc = getLocation()
-        app.end['location']['latitude'] = loc[0]['values'][0]['latitude']
+        app.start['location']['latitude'] = loc[0]['values'][0]['latitude']
         app.start['location']['longitude'] = loc[0]['values'][0]['longitude']
     else:
         app.start['location']['latitude'] = 52.505236
@@ -223,8 +223,10 @@ def stopRide():
 
     app.grade = calculateScore()
     app.overAllGrade = calculateOverallScore()
+    durationInSeconds = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
 
     report = {
+        'duration': durationInSeconds,
         'currentGrade': app.grade,
         'overallGrade': app.overAllGrade,
         'allRyderCompare': allRyderCompare,
@@ -289,6 +291,7 @@ def hello():
 
 @app.route("/getBehaviourEvent/current")
 def getCurrentBehaviourEvent():
+    # has to be faked because we cannot ensure a AutoScout (myCarCloud) car is driving around
     if FAKE_DATA:
         hasNewEvent = True if random.randint(1, 5) == 5 else False
 
@@ -298,6 +301,11 @@ def getCurrentBehaviourEvent():
             return json.dumps(behaviourEvent)
         else:
             return json.dumps({})
+    else:
+        pass
+        # get events after last received event
+        # requests.post('http://api.mycarcloud.de/resource.php', data=app.autoScoutPayload)
+        # check for behaviourEvent
 
 
 @app.route("/user/<username>", methods=['GET', 'POST', 'DELETE'])
@@ -406,10 +414,9 @@ def shouldVibrate():
     resetPebble()
     return value
 
-def calculateScore():
+def calculateScore(durationInSeconds):
     mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BRAKE + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
-    duration = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
-    duration = duration / 60
+    duration = durationInSeconds / 60
     score = (duration - mistakes * 5) / duration
     grade = ""
     if score == 1:
