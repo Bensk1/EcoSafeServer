@@ -77,6 +77,9 @@ NOVERO_JSON = {
     }
 }
 
+app.pastRideScores = [0.54, 0.61, 0.71]
+app.pastRideDurations = [20, 18, 38]
+
 background_tomtom = None
 background_thread_fuel = None
 
@@ -195,9 +198,18 @@ def stopRide():
 
     app.end['time'] = datetime.datetime.now()
 
-    print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
+    allRyderCompare = api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
 
-    return json.dumps(calculateScore())
+    grade = calculateScore()
+    overAllGrade = calculateOverallScore()
+
+    report = {
+        'currentGrade': grade,
+        'overallGrade': overAllGrade,
+        'allRyderCompare': allRyderCompare
+    }
+
+    return json.dumps(report)
     # return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BRAKE, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
     #return json.dumps(app.end['location'])
 
@@ -308,12 +320,8 @@ def triggerSlow(state):
 
     if app.EVENT_SLOW:
         app.START_TIME_SLOW = datetime.datetime.now()
-        app.EVENT_JAM = False
-        app.EVENT_PEBBLE_JAM = False
-        app.EVENT_IDLE = False
-        app.EVENT_PEBBLE_IDLE = False
     else:
-        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds
+        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds()
 
     return "1"
 
@@ -324,12 +332,8 @@ def triggerJam(state):
 
     if app.EVENT_JAM:
         app.START_TIME_JAM = datetime.datetime.now()
-        app.EVENT_SLOW = False
-        app.EVENT_PEBBLE_SLOW = False
-        app.EVENT_IDLE = False
-        app.EVENT_PEBBLE_IDLE = False
     else:
-        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds
+        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds()
 
     return "1"
 
@@ -340,12 +344,8 @@ def triggerIdle(state):
 
     if app.EVENT_IDLE:
         app.START_TIME_IDLE = datetime.datetime.now()
-        app.EVENT_JAM = False
-        app.EVENT_PEBBLE_JAM = False
-        app.EVENT_SLOW = False
-        app.EVENT_PEBBLE_SLOW = False
     else:
-        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds
+        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds()
 
     return "1"
 
@@ -387,7 +387,7 @@ def shouldVibrate():
 def calculateScore():
     mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BRAKE + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
     duration = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
-    score = duration = duration / 60
+    score = duration / 60
     grade = ""
     if score == 1:
         grade = "Excellent"
@@ -395,7 +395,7 @@ def calculateScore():
         grade = "Very Good"
     elif score < 0.95 and score >= 0.9:
         grade = "Good"
-    elif score < 9 and score >= 0.7:
+    elif score < 0.9 and score >= 0.7:
         grade = "Okay"
     elif score < 0.7 and score >= 0.5:
         grade = "Satisfactory"
@@ -404,7 +404,34 @@ def calculateScore():
     else:
         grade = "Take the bus!"
 
+    app.pastRideDurations.append(duration)
+    app.pastRideScores.append(score)
+
     return grade
+
+def calculateOverallScore():
+    overAllScore = 0.0
+    overAllTime = 0.0
+    i = 0
+    for pastRideDuration in app.pastRideDurations:
+        overAllScore += pastRideDuration * app.pastRideScores[i]
+        overAllTime += pastRideDuration
+        i += 1
+
+    overAllScore = overAllScore / overAllTime
+
+    if overAllScore <= 1 and overAllScore >= 0.9:
+        overAllGrade = "Driving School Teacher"
+    elif overAllScore < 0.9 and overAllScore >= 0.7:
+        overAllGrade = "Experienced Driver"
+    elif overAllScore < 0.7 and overAllScore >= 0.5:
+        overAllGrade = "Amateur"
+    elif overAllScore < 0.5 and overAllScore >= 0.25:
+        overAllGrade = "Blind granny"
+    else:
+        overAllGrade = "Rowdy"
+
+    return overAllGrade
 
 
 if __name__ == "__main__":
@@ -418,7 +445,7 @@ if __name__ == "__main__":
     background_proximity.setDaemon(True)
     background_proximity.start();
 
-    #app.debug = False
+    app.debug = False
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     IOLoop.instance().start()
