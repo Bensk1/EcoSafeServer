@@ -210,7 +210,7 @@ def stopRide():
     }
 
     return json.dumps(report)
-    # return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BRAKE, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    # return NOVERO_JSONn.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BRAKE, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
     #return json.dumps(app.end['location'])
 
 def background_update_tomtom():
@@ -387,7 +387,8 @@ def shouldVibrate():
 def calculateScore():
     mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BRAKE + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
     duration = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
-    score = duration / 60
+    duration = duration / 60
+    score = (duration - mistakes * 5) / duration
     grade = ""
     if score == 1:
         grade = "Excellent"
