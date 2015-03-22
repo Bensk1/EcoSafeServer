@@ -43,6 +43,50 @@ def getAllryderCompare(posLatBegin, posLongBegin, posLatEnd, posLongEnd, timeBeg
 
         alternatives += [[route['type'], route['provider'], duration, route['price']['amount']]]
 
+    ptLengths = []
+    for alternative in alternatives:
+        if alternative[0] == "public_transport":
+            ptLengths.append(alternative[2])
+
+    minPtLength = ptLengths[0]
+    for ptLength in ptLengths[1:]:
+        if ptLength < minPtLength:
+            minPtLength = ptLength
+
+    remove = []
+    equal = 0
+    for alternative in alternatives:
+        if alternative[0] == "public_transport":
+            if alternative[2] <> minPtLength or equal > 0:
+                remove.append(alternative)
+            else:
+                equal += 1
+
+    for rem in remove:
+        alternatives.remove(rem)
+
+    csLengths = []
+    for alternative in alternatives:
+        if alternative[0] == "car_sharing":
+            csLengths.append(alternative[2])
+
+    minCsLength = csLengths[0]
+    for csLength in csLengths[1:]:
+        if csLength < minCsLength:
+            minCsLength = csLength
+
+    remove = []
+    equal = 0
+    for alternative in alternatives:
+        if alternative[0] == "car_sharing":
+            if alternative[2] <> minCsLength or equal > 0:
+                remove.append(alternative)
+            else:
+                equal += 1
+
+    for rem in remove:
+        alternatives.remove(rem)
+
     return alternatives
 
 # getAllryderCompare(52.529990,13.403770,52.481261,13.435235)
