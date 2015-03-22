@@ -11,6 +11,7 @@ import api_calls
 from threading import Thread
 import time
 import api_calls
+import datetime
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -88,16 +89,24 @@ behaviourEvent = {
     u'gps': []
 }
 
-startLocation = {
-    'longitude': 0.0,
-    'latitude': 0.0
+app.start = {
+    'location': {
+        'longitude': 0.0,
+        'latitude': 0.0
+    },
+    'time': ""
 }
 
-endLocation = {
-    'longitude': 0.0,
-    'latitude': 0.0
+app.end = {
+    'location': {
+        'longitude': 0.0,
+        'latitude': 0.0
+    },
+    'time': ""
 }
 
+MARKGRAFENSTR = "52.505236, 13.394680"
+FRANKFURTER_TOR = "52.515746, 13.454031"
 
 def getLocation():
     NOVERO_JSON['sigid'] = NOVERO_SIGID_LOCATION
@@ -120,20 +129,36 @@ def dropDb():
 
 @app.route("/ride/start")
 def startRide():
-    background_tomtom.start()
-    loc = getLocation()
-    startLocation['longitude'] = loc[0]['values'][0]['longitude']
-    startLocation['latitude'] = loc[0]['values'][0]['latitude']
-    return json.dumps(startLocation)
+    # background_tomtom.start()
+    if not FAKE_DATA:
+        loc = getLocation()
+        app.end['location']['latitude'] = loc[0]['values'][0]['latitude']
+        app.start['location']['longitude'] = loc[0]['values'][0]['longitude']
+    else:
+        app.start['location']['latitude'] = 52.505236
+        app.start['location']['longitude'] = 13.394680       
+
+    app.start['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
+
+    return json.dumps(app.start['location'])
 
 
 @app.route("/ride/end")
 def stopRide():
-    background_tomtom.stop();
-    loc = getLocation()
-    endLocation['longitude'] = loc[0]['values'][0]['longitude']
-    endLocation['latitude'] = loc[0]['values'][0]['latitude']
-    return json.dumps(endLocation)
+    # background_tomtom.stop();
+    if not FAKE_DATA:
+        loc = getLocation()
+        app.end['location']['latitude'] = loc[0]['values'][0]['latitude']
+        app.end['location']['longitude'] = loc[0]['values'][0]['longitude']
+    else:
+        app.end['location']['latitude'] = 52.515746
+        app.end['location']['longitude'] = 13.454031
+
+    app.end['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
+
+    print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], app.start['time'])
+
+    return json.dumps(app.end['location'])
 
 def background_update_tomtom():
     while True:

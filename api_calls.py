@@ -20,11 +20,13 @@ def getTrafficEvents(posLat, posLong):
 
 # getTrafficBonus(10, 40.7481665, -73.9949547)
 
-def getAllryderCompare(posLatBegin, posLongBegin, posLatEnd, posLongEnd):
+def getAllryderCompare(posLatBegin, posLongBegin, posLatEnd, posLongEnd, timeBegin):
     url = 'http://hack.allryder.com/v1/routes'
     params = {
             'from': str(posLatBegin) + ',' + str(posLongBegin),
-            'to': str(posLatEnd) + ',' + str(posLongEnd)
+            'to': str(posLatEnd) + ',' + str(posLongEnd),
+            'at': timeBegin,
+            'by': 'departure'
             }
 
     resp = requests.get(url=url, params=params)
