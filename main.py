@@ -221,9 +221,9 @@ def stopRide():
 
     allRyderCompare = api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
 
-    app.grade = calculateScore()
-    app.overAllGrade = calculateOverallScore()
     durationInSeconds = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
+    app.grade = calculateScore(durationInSeconds)
+    app.overAllGrade = calculateOverallScore()
     durationInMinutes = durationInSeconds / 60.0
 
     report = {
