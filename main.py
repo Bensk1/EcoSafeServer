@@ -29,6 +29,8 @@ app.EVENT_TURN = False
 app.EVENT_SPEEDING = False
 app.EVENT_JAM = False
 app.EVENT_SLOW = False
+app.FUEL_USAGE = 0
+app.FUEL_EFFICIENCY = 1
 
 app.EVENT_PEBBLE_ACCELERATION = False
 app.EVENT_PEBBLE_BREAK = False
@@ -74,6 +76,7 @@ NOVERO_JSON = {
 }
 
 background_tomtom = None
+background_thread_fuel = None
 
 payload = {
     'access_token': '08beec989bccb333439ee3588583f19f02dd6b7e',
@@ -126,6 +129,19 @@ def getLocation():
     r = requests.post(NOVERO_URL, json.dumps(NOVERO_JSON))
     return json.loads(r.text)
 
+def background_fuel_usage():
+    while True:
+        NOVERO_JSON['sigid'] = NOVERO_SIGID_FUEL
+        r = requests.post(NOVERO_URL, json.dumps(NOVERO_JSON))
+        app.FUEL_USAGE = float(json.loads(r.text)[0]['values'][0]['liters'])
+        if app.FUEL_USAGE <= 10:
+            app.FUEL_EFFICIENCY = 0
+        elif app.FUEL_USAGE <= 14:
+            app.FUEL_EFFICIENCY = 1
+        else:
+            app.FUEL_EFFICIENCY = 2
+        print("FUEL USAGE: " + str(FUEL_USAGE))
+        time.sleep(10)
 
 @app.teardown_appcontext
 def closeConnection(exception):
@@ -139,6 +155,10 @@ def initDb():
 @app.route("/db/drop")
 def dropDb():
     return database.dropDb()
+
+@app.route("/fuel")
+def getFuelStatus():
+    return app.FUEL_EFFICIENCY
 
 @app.route("/stats")
 def stats():
@@ -328,6 +348,9 @@ def shouldVibrate():
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
+    background_thread_fuel = Thread(target = background_fuel_usage)
+    background_thread_fuel.setDaemon(True)
+    background_thread_fuel.start()
     app.debug = True
     #app.run(host="0.0.0.0")
     http_server = HTTPServer(WSGIContainer(app))
