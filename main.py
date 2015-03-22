@@ -206,7 +206,8 @@ def stopRide():
     report = {
         'currentGrade': grade,
         'overallGrade': overAllGrade,
-        'allRyderCompare': allRyderCompare
+        'allRyderCompare': allRyderCompare,
+        'fuelEfficiency': app.FUEL_EFFICIENCY
     }
 
     return json.dumps(report)
