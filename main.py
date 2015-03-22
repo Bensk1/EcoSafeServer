@@ -22,6 +22,7 @@ from twython import Twython
 
 import user
 import ride
+# import mileageFromGPS
 
 app = Flask(__name__)
 
