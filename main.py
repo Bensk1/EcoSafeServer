@@ -17,6 +17,8 @@ import serial
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+from twitter import *
+from twython import Twython
 
 import user
 import ride
@@ -129,6 +131,25 @@ app.end = {
 MARKGRAFENSTR = "52.505236, 13.394680"
 FRANKFURTER_TOR = "52.515746, 13.454031"
 
+@app.route("/tweet")
+def tweetRide():
+    try:
+        #t = Twitter(auth=OAuth('3103869543-RNxiuTTiG72vgYVF7ZC62GU4Dr0nHQvNmwXASdF', '3PJZ3PX6haaGxDpRLOMSUW24f8UP8aIoIkxepE0B93Zdw', 'LIGCZFGC1olDPrBzax5bXFajX' ,'dDzlBjv77s7NNCaxjxEHSKYKaTZq9cGrL2biPKC1B6LQNDU17C'))
+        twitter = Twython(
+            'LIGCZFGC1olDPrBzax5bXFajX',
+            'dDzlBjv77s7NNCaxjxEHSKYKaTZq9cGrL2biPKC1B6LQNDU17C',
+            '3103869543-RNxiuTTiG72vgYVF7ZC62GU4Dr0nHQvNmwXASdF',
+            '3PJZ3PX6haaGxDpRLOMSUW24f8UP8aIoIkxepE0B93Zdw')
+
+        image_ids = twitter.upload_media(media=open(app.overAllGrade + ".png"))
+        #twitter.update_status(status='hello this is an status',media_ids=image_ids['media_id'])
+
+        val = "I just scored " + app.grade + " on #GREENtire! I'm a " + app.overAllGrade + " now!"
+        twitter.update_status(status=val, media_ids=image_ids['media_id'])
+    except Exception as excp:
+        print("Twitter failed: " + str(excp))
+    return "1"
+
 def getLocation():
     NOVERO_JSON['sigid'] = NOVERO_SIGID_LOCATION
     r = requests.post(NOVERO_URL, json.dumps(NOVERO_JSON))
@@ -200,12 +221,12 @@ def stopRide():
 
     allRyderCompare = api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
 
-    grade = calculateScore()
-    overAllGrade = calculateOverallScore()
+    app.grade = calculateScore()
+    app.overAllGrade = calculateOverallScore()
 
     report = {
-        'currentGrade': grade,
-        'overallGrade': overAllGrade,
+        'currentGrade': app.grade,
+        'overallGrade': app.overAllGrade,
         'allRyderCompare': allRyderCompare,
         'fuelEfficiency': app.FUEL_EFFICIENCY
     }
