@@ -206,7 +206,8 @@ def stopRide():
     report = {
         'currentGrade': grade,
         'overallGrade': overAllGrade,
-        'allRyderCompare': allRyderCompare
+        'allRyderCompare': allRyderCompare,
+        'fuelEfficiency': app.FUEL_EFFICIENCY
     }
 
     return json.dumps(report)
@@ -321,7 +322,7 @@ def triggerSlow(state):
     if app.EVENT_SLOW:
         app.START_TIME_SLOW = datetime.datetime.now()
     else:
-        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds()
+        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds
 
     return "1"
 
@@ -333,7 +334,7 @@ def triggerJam(state):
     if app.EVENT_JAM:
         app.START_TIME_JAM = datetime.datetime.now()
     else:
-        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds()
+        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds
 
     return "1"
 
@@ -345,7 +346,7 @@ def triggerIdle(state):
     if app.EVENT_IDLE:
         app.START_TIME_IDLE = datetime.datetime.now()
     else:
-        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds()
+        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds
 
     return "1"
 
