@@ -12,6 +12,8 @@ from threading import Thread
 import time
 import api_calls
 import datetime
+import time
+import serial
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -140,7 +142,7 @@ def background_fuel_usage():
             app.FUEL_EFFICIENCY = 1
         else:
             app.FUEL_EFFICIENCY = 2
-        print("FUEL USAGE: " + str(FUEL_USAGE))
+        print("FUEL USAGE: " + str(app.FUEL_USAGE))
         time.sleep(10)
 
 @app.teardown_appcontext
@@ -175,7 +177,7 @@ def startRide():
         app.start['location']['latitude'] = 52.505236
         app.start['location']['longitude'] = 13.394680
 
-    app.start['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
+    app.start['time'] = datetime.datetime.now() - datetime.timedelta(minutes=10)
 
     return json.dumps(app.start['location'])
 
@@ -191,11 +193,12 @@ def stopRide():
         app.end['location']['latitude'] = 52.515746
         app.end['location']['longitude'] = 13.454031
 
-    app.end['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
+    app.end['time'] = datetime.datetime.now()
 
-    print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], app.start['time'])
+    print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
 
-    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    return json.dumps(calculateScore())
+    # return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
     #return json.dumps(app.end['location'])
 
 def background_update_tomtom():
@@ -210,12 +213,34 @@ def background_update_tomtom():
         except Exception as inst:
             print("Error in TomTom update: " + str(inst))
 
+def background_update_proximity():
+    print "PREPARE TO READ PROXIMITY"
+    SERIAL_PORT = "/dev/cu.usbmodem1421"
+    ser = serial.Serial(
+        port=SERIAL_PORT,
+        baudrate=9600,
+        parity=serial.PARITY_ODD,
+        stopbits=serial.STOPBITS_TWO,
+        bytesize=serial.SEVENBITS
+    )
+    ser.close()
+    ser.open()
+    line = ser.readline()
+    print "WE ARE READY"
+    while True:
+        line = ser.readline()
+        app.EVENT_DISTANCE = True
+        app.EVENT_PEBBLE_DISTANCE = True
+
+
 @app.route("/events")
 def events():
     value = json.dumps([app.EVENT_ACCELERATION, app.EVENT_BREAK, app.EVENT_IDLE, app.EVENT_DISTANCE, app.EVENT_TURN, app.EVENT_SPEEDING, app.EVENT_JAM, app.EVENT_SLOW])
 
-    app.EVENT_BREAK = False
     app.EVENT_ACCELERATION = False
+    app.EVENT_BREAK = False
+    app.EVENT_IDLE = False
+    app.EVENT_DISTANCE = False
     app.EVENT_TURN = False
     app.EVENT_SPEEDING = False
 
@@ -332,8 +357,10 @@ def listUser():
 
 
 def resetPebble():
-    app.EVENT_PEBBLE_BREAK = False
     app.EVENT_PEBBLE_ACCELERATION = False
+    app.EVENT_PEBBLE_BREAK = False
+    app.EVENT_PEBBLE_IDLE = False
+    app.EVENT_PEBBLE_DISTANCE = False
     app.EVENT_PEBBLE_TURN = False
     app.EVENT_PEBBLE_SPEEDING = False
 
@@ -345,6 +372,29 @@ def shouldVibrate():
     resetPebble()
     return value
 
+def calculateScore():
+    mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BREAK + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
+    duration = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
+    score = duration = duration / 60
+    grade = ""
+    if score == 1:
+        grade = "Excellent"
+    elif score < 1 and score >= 0.95:
+        grade = "Very Good"
+    elif score < 0.95 and score >= 0.9:
+        grade = "Good"
+    elif score < 9 and score >= 0.7:
+        grade = "Okay"
+    elif score < 0.7 and score >= 0.5:
+        grade = "Satisfactory"
+    elif score < 0.5 and score >= 0.25:
+        grade = "Worst driver"
+    else:
+        grade = "Take the bus!"
+
+    return grade
+
+
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
@@ -352,7 +402,11 @@ if __name__ == "__main__":
     background_thread_fuel.setDaemon(True)
     background_thread_fuel.start()
     app.debug = True
-    #app.run(host="0.0.0.0")
+    background_proximity = Thread(target = background_update_proximity)
+    background_proximity.setDaemon(True)
+    background_proximity.start();
+
+    app.debug = False
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     IOLoop.instance().start()
