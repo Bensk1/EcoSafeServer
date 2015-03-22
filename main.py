@@ -175,7 +175,8 @@ def stopRide():
 
     print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], app.start['time'])
 
-    return json.dumps(app.end['location'])
+    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    #return json.dumps(app.end['location'])
 
 def background_update_tomtom():
     while True:
