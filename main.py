@@ -224,9 +224,10 @@ def stopRide():
     app.grade = calculateScore()
     app.overAllGrade = calculateOverallScore()
     durationInSeconds = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
+    durationInMinutes = durationInSeconds / 60.0
 
     report = {
-        'duration': durationInSeconds,
+        'duration': ("%.2f" % durationInMinutes),
         'currentGrade': app.grade,
         'overallGrade': app.overAllGrade,
         'allRyderCompare': allRyderCompare,
