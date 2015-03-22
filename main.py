@@ -145,7 +145,7 @@ def tweetRide():
         image_ids = twitter.upload_media(media=open(app.overAllGrade + ".png"))
         #twitter.update_status(status='hello this is an status',media_ids=image_ids['media_id'])
 
-        val = "I just scored " + app.grade + " on #GREENtire! I'm a " + app.overAllGrade + " now!"
+        val = "I just scored " + app.grade + " on #GREENtire! I'm a " + app.overAllGrade + " now! #mediahackday"
         twitter.update_status(status=val, media_ids=image_ids['media_id'])
     except Exception as excp:
         print("Twitter failed: " + str(excp))
