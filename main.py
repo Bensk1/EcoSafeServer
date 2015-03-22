@@ -309,7 +309,7 @@ def triggerSlow(state):
     if app.EVENT_SLOW:
         app.START_TIME_SLOW = datetime.datetime.now()
     else:
-        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds()
+        app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds
 
     return "1"
 
@@ -321,7 +321,7 @@ def triggerJam(state):
     if app.EVENT_JAM:
         app.START_TIME_JAM = datetime.datetime.now()
     else:
-        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds()
+        app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds
 
     return "1"
 
@@ -333,7 +333,7 @@ def triggerIdle(state):
     if app.EVENT_IDLE:
         app.START_TIME_IDLE = datetime.datetime.now()
     else:
-        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds()
+        app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds
 
     return "1"
 
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     background_proximity.setDaemon(True)
     background_proximity.start();
 
-    app.debug = False
+    #app.debug = False
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     IOLoop.instance().start()
