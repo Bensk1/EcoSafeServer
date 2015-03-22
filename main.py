@@ -12,6 +12,7 @@ from threading import Thread
 import time
 import api_calls
 import datetime
+import time
 import serial
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
@@ -156,7 +157,7 @@ def startRide():
         app.start['location']['latitude'] = 52.505236
         app.start['location']['longitude'] = 13.394680
 
-    app.start['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
+    app.start['time'] = datetime.datetime.now() - datetime.timedelta(minutes=10)
 
     return json.dumps(app.start['location'])
 
@@ -172,11 +173,12 @@ def stopRide():
         app.end['location']['latitude'] = 52.515746
         app.end['location']['longitude'] = 13.454031
 
-    app.end['time'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%dT%H:%M:%S+00:00')
+    app.end['time'] = datetime.datetime.now()
 
-    print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], app.start['time'])
+    print api_calls.getAllryderCompare(app.start['location']['latitude'], app.start['location']['longitude'], app.end['location']['latitude'], app.end['location']['longitude'], datetime.datetime.strftime(app.start['time'], '%Y-%m-%dT%H:%M:%S+00:00'))
 
-    return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
+    return json.dumps(calculateScore())
+    # return json.dumps([app.COUNTER_ACCELERATION, app.COUNTER_BREAK, app.TIME_IDLE, app.COUNTER_DISTANCE, app.COUNTER_TURN, app.COUNTER_SPEEDING, app.TIME_JAM, app.TIME_SLOW])
     #return json.dumps(app.end['location'])
 
 def background_update_tomtom():
@@ -349,6 +351,29 @@ def shouldVibrate():
 
     resetPebble()
     return value
+
+def calculateScore():
+    mistakes =  app.COUNTER_ACCELERATION + app.COUNTER_BREAK + app.TIME_IDLE + app.COUNTER_DISTANCE + app.COUNTER_TURN + app.COUNTER_SPEEDING + app.TIME_JAM + app.TIME_SLOW
+    duration = time.mktime(app.end['time'].timetuple()) - time.mktime(app.start['time'].timetuple())
+    score = duration = duration / 60
+    grade = ""
+    if score == 1:
+        grade = "Excellent"
+    elif score < 1 and score >= 0,95:
+        grade = "Very Good"
+    elif score < 0.95 and score >= 0,9:
+        grade = "Good"
+    elif score < 9 and score >= 0,7:
+        grade = "Okay"
+    elif score < 0.7 and score >= 0,5:
+        grade = "Satisfactory"
+    elif score < 0.5 and score >= 0,25:
+        grade = "Worst driver"
+    else:
+        grade = "Take the bus!"
+
+    return grade
+
 
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
