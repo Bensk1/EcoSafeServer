@@ -308,6 +308,10 @@ def triggerSlow(state):
 
     if app.EVENT_SLOW:
         app.START_TIME_SLOW = datetime.datetime.now()
+        app.EVENT_JAM = False
+        app.EVENT_PEBBLE_JAM = False
+        app.EVENT_IDLE = False
+        app.EVENT_PEBBLE_IDLE = False
     else:
         app.TIME_SLOW += (datetime.datetime.now() - app.START_TIME_SLOW).seconds
 
@@ -320,6 +324,10 @@ def triggerJam(state):
 
     if app.EVENT_JAM:
         app.START_TIME_JAM = datetime.datetime.now()
+        app.EVENT_SLOW = False
+        app.EVENT_PEBBLE_SLOW = False
+        app.EVENT_IDLE = False
+        app.EVENT_PEBBLE_IDLE = False
     else:
         app.TIME_JAM += (datetime.datetime.now() - app.START_TIME_JAM).seconds
 
@@ -332,6 +340,10 @@ def triggerIdle(state):
 
     if app.EVENT_IDLE:
         app.START_TIME_IDLE = datetime.datetime.now()
+        app.EVENT_JAM = False
+        app.EVENT_PEBBLE_JAM = False
+        app.EVENT_SLOW = False
+        app.EVENT_PEBBLE_SLOW = False
     else:
         app.TIME_IDLE += (datetime.datetime.now() - app.START_TIME_IDLE).seconds
 
