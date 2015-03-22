@@ -54,10 +54,35 @@ def getAllryderCompare(posLatBegin, posLongBegin, posLatEnd, posLongEnd, timeBeg
             minPtLength = ptLength
 
     remove = []
+    equal = 0
     for alternative in alternatives:
         if alternative[0] == "public_transport":
-            if alternative[2] <> minPtLength:
+            if alternative[2] <> minPtLength or equal > 0:
                 remove.append(alternative)
+            else:
+                equal += 1
+
+    for rem in remove:
+        alternatives.remove(rem)
+
+    csLengths = []
+    for alternative in alternatives:
+        if alternative[0] == "car_sharing":
+            csLengths.append(alternative[2])
+
+    minCsLength = csLengths[0]
+    for csLength in csLengths[1:]:
+        if csLength < minCsLength:
+            minCsLength = csLength
+
+    remove = []
+    equal = 0
+    for alternative in alternatives:
+        if alternative[0] == "car_sharing":
+            if alternative[2] <> minCsLength or equal > 0:
+                remove.append(alternative)
+            else:
+                equal += 1
 
     for rem in remove:
         alternatives.remove(rem)
