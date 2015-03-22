@@ -12,6 +12,7 @@ from threading import Thread
 import time
 import api_calls
 import datetime
+import serial
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -190,12 +191,34 @@ def background_update_tomtom():
         except Exception as inst:
             print("Error in TomTom update: " + str(inst))
 
+def background_update_proximity():
+    print "PREPARE TO READ PROXIMITY"
+    SERIAL_PORT = "/dev/cu.usbmodem1421"
+    ser = serial.Serial(
+        port=SERIAL_PORT,
+        baudrate=9600,
+        parity=serial.PARITY_ODD,
+        stopbits=serial.STOPBITS_TWO,
+        bytesize=serial.SEVENBITS
+    )
+    ser.close()
+    ser.open()
+    line = ser.readline()
+    print "WE ARE READY"
+    while True:
+        line = ser.readline()
+        app.EVENT_DISTANCE = True
+        app.EVENT_PEBBLE_DISTANCE = True
+
+
 @app.route("/events")
 def events():
     value = json.dumps([app.EVENT_ACCELERATION, app.EVENT_BREAK, app.EVENT_IDLE, app.EVENT_DISTANCE, app.EVENT_TURN, app.EVENT_SPEEDING, app.EVENT_JAM, app.EVENT_SLOW])
 
-    app.EVENT_BREAK = False
     app.EVENT_ACCELERATION = False
+    app.EVENT_BREAK = False
+    app.EVENT_IDLE = False
+    app.EVENT_DISTANCE = False
     app.EVENT_TURN = False
     app.EVENT_SPEEDING = False
 
@@ -312,8 +335,10 @@ def listUser():
 
 
 def resetPebble():
-    app.EVENT_PEBBLE_BREAK = False
     app.EVENT_PEBBLE_ACCELERATION = False
+    app.EVENT_PEBBLE_BREAK = False
+    app.EVENT_PEBBLE_IDLE = False
+    app.EVENT_PEBBLE_DISTANCE = False
     app.EVENT_PEBBLE_TURN = False
     app.EVENT_PEBBLE_SPEEDING = False
 
@@ -328,8 +353,12 @@ def shouldVibrate():
 if __name__ == "__main__":
     background_tomtom = Thread(target = background_update_tomtom)
     background_tomtom.setDaemon(True)
-    app.debug = True
-    #app.run(host="0.0.0.0")
+    background_proximity = Thread(target = background_update_proximity)
+    background_proximity.setDaemon(True)
+    background_proximity.start();
+
+    app.debug = False
+    # app.run(host="0.0.0.0")
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     IOLoop.instance().start()
