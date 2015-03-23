@@ -40,7 +40,7 @@ def getAllryderCompare(posLatBegin, posLongBegin, posLatEnd, posLongEnd, timeBeg
         time_start = route['segments'][0]['stops'][0]['datetime']
         time_end = route['segments'][-1]['stops'][-1]['datetime']
         duration = (dateutil.parser.parse(time_end) - dateutil.parser.parse(time_start)).total_seconds()
-        duration = ("%.2f" % (duration / 60.0))
+        duration = ("%.2f min" % (duration / 60.0))
 
         alternatives += [[route['type'], route['provider'], duration, str(route['price']['amount'] / 100.0) + " Eur"]]
 
